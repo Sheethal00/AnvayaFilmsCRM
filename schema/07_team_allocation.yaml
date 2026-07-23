@@ -1,0 +1,42 @@
+# 07_Team_Allocation — SPEC.md §3 "07_Team_Allocation"
+sheet: "07_Team_Allocation"
+type: table
+primary_key: AllocationID
+
+columns:
+  - name: AllocationID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "AL-####", counter_key: LastAllocationID}
+
+  - name: BookingID
+    type: text
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+
+  - name: TeamMemberID
+    type: text
+    foreign_key: {sheet: "19_Settings", table: team_list, column: TeamMemberID}
+
+  - name: Role
+    type: dropdown
+    list_ref: TeamRoleList
+
+  - name: EventDate
+    type: lookup
+    source: {sheet: "06_Wedding_Calendar", column: EventDate}
+    notes: "For conflict-check"
+
+  - name: Status
+    type: dropdown
+    values: [Assigned, Confirmed, Completed, No-show]
+
+automation:
+  - name: DoubleBookingCheck
+    trigger: "Before saving a new allocation (Worksheet_Change on this sheet)"
+    macro: "AvailabilityCheck.CheckTeamAvailability"
+    effect: >
+      COUNTIFS(07_Team_Allocation, TeamMemberID, EventDate) — if >0 for a
+      different BookingID, show a double-booking warning (SPEC.md §3, §9).
+
+validation_rules:
+  - "A Team Member cannot be allocated to two Bookings on the same EventDate (SPEC.md §9)."

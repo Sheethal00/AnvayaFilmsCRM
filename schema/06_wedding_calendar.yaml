@@ -1,0 +1,28 @@
+# 06_Wedding_Calendar — SPEC.md §3 "06_Wedding_Calendar"
+# One row per *event* (Haldi, Mehendi, Wedding, Reception...), not per
+# booking — a single booking commonly spans several calendar entries.
+sheet: "06_Wedding_Calendar"
+type: table
+
+columns:
+  - name: BookingID
+    type: text
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+
+  - name: EventName
+    type: text
+    notes: 'e.g. "Haldi", "Reception"'
+
+  - name: EventDate
+    type: date
+
+  - name: StartTime
+    type: time
+
+  - name: VenueName
+    type: lookup
+    source: {sheet: "05_Bookings", column: VenueName}
+
+  - name: CountdownDays
+    type: formula
+    formula: "EventDate - TODAY()"

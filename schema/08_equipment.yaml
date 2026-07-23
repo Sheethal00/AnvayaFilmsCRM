@@ -1,0 +1,39 @@
+# 08_Equipment — SPEC.md §3 "08_Equipment"
+sheet: "08_Equipment"
+type: table
+primary_key: EquipmentID
+
+columns:
+  - name: EquipmentID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "EQ-####", counter_key: LastEquipmentID}
+
+  - name: Category
+    type: dropdown
+    list_ref: EquipmentCategoryList
+
+  - name: Model
+    type: text
+
+  - name: SerialNumber
+    type: text
+
+  - name: PurchaseDate
+    type: date
+
+  - name: Status
+    type: dropdown
+    values: [Available, Assigned, Maintenance, Lost, Retired]
+
+  - name: CurrentBookingID
+    type: text
+    nullable: true
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+    notes: "Set when Status=Assigned"
+
+  - name: MaintenanceNotes
+    type: text
+
+validation_rules:
+  - "Equipment cannot be assigned (Status->Assigned) to two Bookings with overlapping EventDates (SPEC.md §9)."

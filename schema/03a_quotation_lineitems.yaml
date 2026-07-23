@@ -1,0 +1,24 @@
+# 03a_Quotation_LineItems — sub-table of 03_Quotation_Manager (SPEC.md §3)
+# One quote -> many priced lines (e.g. Album + Highlight Film + Drone
+# itemized separately, rather than one lump PackageValue).
+sheet: "03a_Quotation_LineItems"
+type: table
+parent_sheet: "03_Quotation_Manager"
+
+columns:
+  - name: QuoteID
+    type: text
+    foreign_key: {sheet: "03_Quotation_Manager", column: QuoteID}
+
+  - name: ItemDescription
+    type: text
+
+  - name: Qty
+    type: num
+
+  - name: UnitPrice
+    type: currency
+
+  - name: LineTotal
+    type: formula
+    formula: "Qty * UnitPrice"

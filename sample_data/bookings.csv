@@ -1,0 +1,2 @@
+BookingID,ClientID,QuoteID,EventType,PackageValue,AdvanceAmount,AdvanceDate,BalanceAmount,WeddingDate,VenueName,VenueMapLink,DeliveryDeadline,Status
+BK-0001,CL-0001,Q-0001,Photography+Videography,250000,75000,2026-01-10,,2026-11-14,Taj Lands End,https://maps.google.com/?q=Taj+Lands+End,,Confirmed

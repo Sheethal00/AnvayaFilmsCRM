@@ -1,0 +1,44 @@
+# 14_Expenses — SPEC.md §3 "14_Expenses"
+sheet: "14_Expenses"
+type: table
+primary_key: ExpenseID
+
+columns:
+  - name: ExpenseID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "EXP-YYYY-####", counter_key: LastExpenseNo, resets: calendar_year}
+
+  - name: Date
+    type: date
+
+  - name: Category
+    type: dropdown
+    list_ref: ExpenseCategoryList
+
+  - name: Description
+    type: text
+
+  - name: Amount
+    type: currency
+
+  - name: LinkedBookingID
+    type: text
+    nullable: true
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+    notes: "For job-costing profitability per wedding"
+
+  - name: PaidTo
+    type: lookup
+    source_options:
+      - {sheet: "15_Freelancers", column: Name}
+      - {sheet: "16_Vendors", column: VendorName}
+
+  - name: PaymentMethod
+    type: dropdown
+    list_ref: PaymentMethodList
+
+notes: >
+  LinkedBookingID enables per-wedding profit calculation
+  (05_Bookings.PackageValue - SUMIFS(14_Expenses, LinkedBookingID) -
+  allocated freelancer cost) — SPEC.md §3.

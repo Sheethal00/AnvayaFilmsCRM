@@ -1,0 +1,12 @@
+# 13_Income — SPEC.md §3 "13_Income"
+# Filtered/pivot VIEW of 12_Payments where Status=Cleared, grouped by
+# month. Not a separately maintained sheet — no stored columns, no PK.
+sheet: "13_Income"
+type: view
+source:
+  sheet: "12_Payments"
+  filter: "Status = 'Cleared'"
+  group_by: "month(PaymentDate)"
+notes: >
+  Prevents double-entry drift between "Payments" and "Income" that the
+  original spec's parallel sheets invited (SPEC.md §3).

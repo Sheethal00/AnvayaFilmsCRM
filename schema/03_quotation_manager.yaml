@@ -1,0 +1,55 @@
+# 03_Quotation_Manager — SPEC.md §3 "03_Quotation_Manager"
+sheet: "03_Quotation_Manager"
+type: table
+primary_key: QuoteID
+
+columns:
+  - name: QuoteID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "Q-####", counter_key: LastQuoteID}
+
+  - name: LeadID
+    type: text
+    foreign_key: {sheet: "02_CRM_Leads", column: LeadID}
+
+  - name: DateIssued
+    type: date
+
+  - name: PackageSelected
+    type: dropdown
+    list_ref: PackagesList
+
+  - name: Subtotal
+    type: formula
+    formula: "SUM(03a_Quotation_LineItems.LineTotal where QuoteID = this.QuoteID)"
+    notes: "Sum of line items"
+
+  - name: "GST%"
+    type: num
+    default_from: "19_Settings.values.GSTRate"
+
+  - name: GSTAmount
+    type: formula
+    formula: "Subtotal * [GST%]"
+
+  - name: Total
+    type: formula
+    formula: "Subtotal + GSTAmount"
+
+  - name: ValidUntil
+    type: date
+
+  - name: Status
+    type: dropdown
+    values: [Draft, Sent, Accepted, Rejected, Expired]
+
+automation:
+  - name: QuoteGSTCalc
+    trigger: "On Quote save"
+    macro: null
+    effect: "GSTAmount/Total computed from Settings.GSTRate formula, not hardcoded (SPEC.md §6)."
+
+sub_tables:
+  - sheet: "03a_Quotation_LineItems"
+    see: "schema/03a_quotation_lineitems.yaml"

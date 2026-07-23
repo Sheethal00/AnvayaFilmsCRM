@@ -1,0 +1,29 @@
+# 09_Shoot_Checklist — SPEC.md §3 "09_Shoot_Checklist"
+# Rows, not fixed columns, so checklist items can be added per-phase
+# without a schema change.
+sheet: "09_Shoot_Checklist"
+type: table
+
+columns:
+  - name: BookingID
+    type: text
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+
+  - name: ChecklistPhase
+    type: dropdown
+    values: ["Pre-Shoot", "Wedding Day", "Post-Shoot"]
+
+  - name: ItemName
+    type: text
+    notes: 'e.g. "Batteries Charged"'
+
+  - name: Checked
+    type: bool
+
+  - name: CheckedBy
+    type: lookup
+    source: {sheet: "19_Settings", table: team_list, column: Name}
+
+  - name: CheckedAt
+    type: formula
+    formula: "timestamp written by macro when Checked flips to TRUE"

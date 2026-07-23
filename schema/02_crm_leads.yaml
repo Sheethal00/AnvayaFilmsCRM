@@ -1,0 +1,81 @@
+# 02_CRM_Leads — SPEC.md §3 "02_CRM_Leads"
+sheet: "02_CRM_Leads"
+type: table
+primary_key: LeadID
+
+columns:
+  - name: LeadID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "LD-####", counter_key: LastLeadID}
+
+  - name: DateReceived
+    type: date
+
+  - name: ClientName
+    type: text
+
+  - name: Phone
+    type: text
+    validation: {kind: regex, pattern: '^\d{10}$', message: "10-digit numeric"}
+
+  - name: Email
+    type: text
+    validation: {kind: contains, value: "@"}
+
+  - name: Source
+    type: dropdown
+    list_ref: LeadSourceList
+
+  - name: EventType
+    type: dropdown
+    list_ref: PackagesList
+
+  - name: EventDate
+    type: date
+    nullable: true
+    notes: "Tentative, may be blank"
+
+  - name: Budget
+    type: currency
+
+  - name: Status
+    type: dropdown
+    values: [New, Contacted, Quoted, Negotiating, Won, Lost]
+    notes: "Drives Lead Conversion Dashboard"
+
+  - name: LostReason
+    type: dropdown
+    values: [Price, "Date conflict", "Chose competitor", "No response", Other]
+    required_if: {column: Status, equals: Lost}
+
+  - name: AssignedTo
+    type: lookup
+    source: {sheet: "19_Settings", table: team_list, column: Name}
+    notes: "Sales owner"
+
+  - name: NextFollowUpDate
+    type: date
+    notes: "Feeds Follow-up Tracker view"
+
+  - name: Notes
+    type: text
+
+  - name: ConvertedClientID
+    type: text
+    nullable: true
+    foreign_key: {sheet: "04_Client_Master", column: ClientID}
+    notes: "Populated by macro when Status -> Won"
+
+automation:
+  - name: LeadWonConversion
+    trigger: "Status column changes to 'Won' (Worksheet_Change)"
+    macro: "LeadConversion.ConvertLeadToClient"
+    effect: >
+      Creates a row in 04_Client_Master, copies PrimaryContactName/Phone/
+      Email/Source from the lead, writes the new ClientID back into
+      ConvertedClientID. Prevents duplicate manual entry between Lead
+      Management and Customer Database (SPEC.md §3 note).
+
+validation_rules:
+  - "LeadStatus cannot be set to Lost without LostReason (SPEC.md §9)."

@@ -1,0 +1,9 @@
+# 20_Help — SPEC.md §3 "20_Help"
+# Static sheet: field definitions, macro list with descriptions,
+# changelog. No schema — documentation only.
+sheet: "20_Help"
+type: static
+content:
+  - "Field definitions (generated from schema/*.yaml column notes at build time)"
+  - "Macro list with descriptions (generated from vba/modules/*.bas headers)"
+  - "Changelog"

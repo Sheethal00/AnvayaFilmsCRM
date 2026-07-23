@@ -1,0 +1,2 @@
+PaymentID,BookingID,ReceiptNumber,Amount,PaymentDate,Method,PaymentType,Status
+PAY-0001,BK-0001,RCT-2026-0001,75000,2026-01-10,UPI,Advance,Cleared

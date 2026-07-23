@@ -1,0 +1,46 @@
+# 12_Payments — SPEC.md §3 "12_Payments"
+# Single ledger — replaces separate "Invoice Register" + "Receipt
+# Register"; 13_Income is a filtered view over this sheet, not a
+# separate data-entry point.
+sheet: "12_Payments"
+type: table
+primary_key: PaymentID
+
+columns:
+  - name: PaymentID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "PAY-####", counter_key: LastPaymentID}
+
+  - name: BookingID
+    type: text
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+
+  - name: ReceiptNumber
+    type: text
+    id_generation: {pattern: "RCT-YYYY-####", counter_key: LastReceiptNo, resets: calendar_year}
+
+  - name: Amount
+    type: currency
+
+  - name: PaymentDate
+    type: date
+
+  - name: Method
+    type: dropdown
+    list_ref: PaymentMethodList
+
+  - name: PaymentType
+    type: dropdown
+    values: [Advance, Installment, Final, Refund]
+
+  - name: Status
+    type: dropdown
+    values: [Cleared, Pending, Bounced]
+
+validation_rules:
+  - "Payment.Amount cannot cause 05_Bookings.BalanceAmount < 0 without a Refund PaymentType (SPEC.md §9)."
+
+notes: >
+  Per docs/decisions/0001-concurrency.md, this sheet is single-user/
+  local-file — no LastEditedBy/locking columns needed.

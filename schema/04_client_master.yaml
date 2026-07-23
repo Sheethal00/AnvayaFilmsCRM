@@ -1,0 +1,46 @@
+# 04_Client_Master — SPEC.md §3 "04_Client_Master"
+sheet: "04_Client_Master"
+type: table
+primary_key: ClientID
+
+columns:
+  - name: ClientID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "CL-####", counter_key: LastClientID}
+    notes: "Assigned once, on first Booking (not on Lead) — SPEC.md §2"
+
+  - name: PrimaryContactName
+    type: text
+
+  - name: Phone
+    type: text
+
+  - name: Email
+    type: text
+
+  - name: Address
+    type: text
+
+  - name: FamilyContacts
+    type: text
+    notes: "Name + relation + phone, one per line or sub-table if >2 needed"
+
+  - name: Source
+    type: lookup
+    source: {sheet: "02_CRM_Leads", column: Source}
+    notes: "Carried from originating lead"
+
+  - name: ClientSince
+    type: date
+    notes: "= first booking date"
+
+  - name: TotalLifetimeValue
+    type: formula
+    formula: "SUMIFS(05_Bookings.PackageValue, ClientID)"
+
+  - name: Notes
+    type: text
+
+validation_rules:
+  - "A Booking cannot be created without an existing ClientID (SPEC.md §9)."

@@ -1,0 +1,24 @@
+# 10a_Pipeline_History — sub-table of 10_Production_Pipeline (SPEC.md §3)
+# Kept so "Employee Performance" reports (turnaround time per editor,
+# SPEC.md §18) have an underlying history table instead of only a
+# point-in-time CurrentStage.
+sheet: "10a_Pipeline_History"
+type: table
+parent_sheet: "10_Production_Pipeline"
+
+columns:
+  - name: BookingID
+    type: text
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+
+  - name: Stage
+    type: dropdown
+    list_ref: PipelineStageList
+
+  - name: EnteredDate
+    type: date
+
+  - name: ExitedDate
+    type: date
+    nullable: true
+    notes: "Null while the booking is currently in this stage"

@@ -1,0 +1,32 @@
+# 11_Album_Tracker — SPEC.md §3 "11_Album_Tracker"
+sheet: "11_Album_Tracker"
+type: table
+primary_key: BookingID
+unique: true
+
+columns:
+  - name: BookingID
+    type: text
+    primary_key: true
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+
+  - name: CurrentStage
+    type: dropdown
+    values: [Selection, Design, "Client Approval", Corrections, Print, Dispatch, Delivered]
+
+  - name: PagesCount
+    type: num
+
+  - name: DesignerID
+    type: lookup
+    source: {sheet: "19_Settings", table: team_list, column: Name}
+
+  - name: PrintVendor
+    type: lookup
+    source: {sheet: "16_Vendors", column: VendorName}
+
+  - name: DispatchDate
+    type: date
+
+  - name: TrackingNumber
+    type: text

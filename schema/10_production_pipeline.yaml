@@ -1,0 +1,43 @@
+# 10_Production_Pipeline — SPEC.md §3 "10_Production_Pipeline"
+sheet: "10_Production_Pipeline"
+type: table
+primary_key: BookingID
+unique: true
+notes: "One row per booking (unique on BookingID)"
+
+columns:
+  - name: BookingID
+    type: text
+    primary_key: true
+    foreign_key: {sheet: "05_Bookings", column: BookingID}
+
+  - name: CurrentStage
+    type: dropdown
+    list_ref: PipelineStageList
+    notes: "18-stage list, Inquiry...Archived — see schema/19_settings.yaml PipelineStageList placeholder"
+
+  - name: StageEnteredDate
+    type: date
+    notes: "Updated each time CurrentStage changes"
+
+  - name: AssignedEditor
+    type: lookup
+    source: {sheet: "19_Settings", table: team_list, column: Name}
+
+  - name: DaysInCurrentStage
+    type: formula
+    formula: "TODAY() - StageEnteredDate"
+    notes: "Flags stuck projects"
+
+  - name: Notes
+    type: text
+
+automation:
+  - name: StageChangeLog
+    trigger: "CurrentStage column changes (Worksheet_Change)"
+    macro: "PipelineHistory.LogStageChange"
+    effect: "Writes a row to 10a_Pipeline_History with EnteredDate/ExitedDate so turnaround-time reports have real data (SPEC.md §3)."
+
+sub_tables:
+  - sheet: "10a_Pipeline_History"
+    see: "schema/10a_pipeline_history.yaml"

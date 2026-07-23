@@ -1,0 +1,26 @@
+# 18_Reports — SPEC.md §3 "18_Reports"
+# Not new data — saved pivot/report views over existing sheets.
+sheet: "18_Reports"
+type: view
+reports:
+  - name: "Daily/Weekly/Monthly/Quarterly/Annual"
+    sources: ["12_Payments", "14_Expenses"]
+    group_by: "date period"
+  - name: "Revenue Report"
+    sources: ["12_Payments"]
+    group_by: "month, package"
+  - name: "Expense Report"
+    sources: ["14_Expenses"]
+    group_by: "category"
+  - name: "Lead Report"
+    sources: ["02_CRM_Leads"]
+    group_by: "source, status"
+  - name: "Package Report"
+    sources: ["05_Bookings"]
+    group_by: "EventType"
+  - name: "Employee Performance"
+    sources: ["10a_Pipeline_History", "07_Team_Allocation"]
+    group_by: "TeamMemberID — avg. days per stage"
+  - name: "Client Report"
+    sources: ["04_Client_Master", "05_Bookings"]
+    group_by: "lifetime value, repeat bookings"

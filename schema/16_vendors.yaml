@@ -1,0 +1,25 @@
+# 16_Vendors — SPEC.md §3 "16_Vendors"
+sheet: "16_Vendors"
+type: table
+primary_key: VendorID
+
+columns:
+  - name: VendorID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "VN-####", counter_key: LastVendorID}
+
+  - name: VendorName
+    type: text
+
+  - name: Category
+    type: dropdown
+    values: ["Album Printing", "Equipment Rental", Studio, Other]
+
+  - name: ContactInfo
+    type: text
+
+  - name: TotalPaidYTD
+    type: formula
+    formula: "SUMIFS(14_Expenses.Amount, PaidTo=this.VendorName, year(Date)=YEAR(TODAY()))"
+    notes: "Same pattern as 15_Freelancers.TotalPaidYTD"

@@ -1,0 +1,11 @@
+# 17_Accounting — SPEC.md §3 "17_Accounting"
+# Roll-up view only: P&L and Cash Flow, built from pivots over
+# 12_Payments and 14_Expenses. No separately entered data.
+sheet: "17_Accounting"
+type: view
+sources: ["12_Payments", "14_Expenses"]
+reports:
+  - name: "Monthly P&L"
+    formula: "13_Income - 14_Expenses, grouped by month"
+  - name: "Cash Flow Statement"
+    formula: "grouped by month, sourced from 12_Payments and 14_Expenses"

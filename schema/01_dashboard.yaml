@@ -1,0 +1,24 @@
+# 01_Dashboard — SPEC.md §3 "01_Dashboard"
+# Read-only. No stored data — all cells are formulas/pivot references.
+sheet: "01_Dashboard"
+type: view
+elements:
+  - name: "Total Leads"
+    formula: "COUNTA(02_CRM_Leads.LeadID)"
+  - name: "Conversion Rate"
+    formula: "Bookings / Leads over selected period"
+  - name: "Monthly / Yearly Revenue"
+    formula: "SUMIFS(13_Income, Date range)"
+  - name: "Outstanding Payments"
+    formula: "SUMIFS(12_Payments, Status='Pending')"
+  - name: "Upcoming Weddings"
+    formula: "06_Wedding_Calendar filtered EventDate >= TODAY(), next 30 days"
+  - name: "Employee Workload"
+    formula: "COUNTIFS(07_Team_Allocation, TeamMember, Status='Active')"
+  - name: "Equipment Utilization"
+    formula: "COUNTIFS(08_Equipment, Status='Assigned') / COUNTA(08_Equipment)"
+
+refresh:
+  trigger: ["Workbook_Open", "manual 'Refresh Dashboard' button"]
+  macro: "RefreshAllPivots.RefreshAllPivots"
+  notes: "Not volatile formulas everywhere — keeps file size/speed sane (SPEC.md §3)."

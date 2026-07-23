@@ -1,0 +1,225 @@
+# 19_Settings — config table (SPEC.md §3 "19_Settings", §7 Reference Lists)
+#
+# This is the single source of truth for GST rate, delivery-day defaults,
+# ID counters, and every dropdown list used elsewhere in schema/*.yaml via
+# `list_ref: <name>`. Nothing in another sheet's yaml should hardcode a
+# dropdown list inline — see CLAUDE.md "New dropdown/reference lists go in
+# schema/settings.yaml".
+sheet: "19_Settings"
+type: config
+description: >
+  Config table read by VBA (GenerateID, quotation GST calc, delivery
+  deadline calc) and by Excel Data Validation lists. Editable without
+  touching formulas or macros.
+
+# --- scalar config values ---------------------------------------------
+values:
+  GSTRate:
+    value: 0.18
+    type: percent
+    used_by: ["03_Quotation_Manager.GSTAmount"]
+    notes: "Flat 18%, no CGST/SGST split in v1 — SPEC.md §5"
+  DefaultDeliveryDays:
+    value: 90
+    type: num
+    used_by: ["05_Bookings.DeliveryDeadline"]
+
+# --- ID counters, one per generated ID pattern (SPEC.md §2) ------------
+# Read/incremented exclusively by vba/modules/IDGenerator.bas's
+# GenerateID(sheetName) — never by =MAX()+1 in a sheet formula.
+id_counters:
+  - key: LastLeadID
+    pattern: "LD-####"
+    sheet: "02_CRM_Leads"
+    column: LeadID
+    resets: never
+  - key: LastClientID
+    pattern: "CL-####"
+    sheet: "04_Client_Master"
+    column: ClientID
+    resets: never
+  - key: LastBookingID
+    pattern: "BK-####"
+    sheet: "05_Bookings"
+    column: BookingID
+    resets: never
+  - key: LastQuoteID
+    pattern: "Q-####"
+    sheet: "03_Quotation_Manager"
+    column: QuoteID
+    resets: never
+  - key: LastAllocationID
+    pattern: "AL-####"
+    sheet: "07_Team_Allocation"
+    column: AllocationID
+    resets: never
+  - key: LastEquipmentID
+    pattern: "EQ-####"
+    sheet: "08_Equipment"
+    column: EquipmentID
+    resets: never
+  - key: LastPaymentID
+    pattern: "PAY-####"
+    sheet: "12_Payments"
+    column: PaymentID
+    resets: never
+  - key: LastFreelancerID
+    pattern: "FL-####"
+    sheet: "15_Freelancers"
+    column: FreelancerID
+    resets: never
+  - key: LastVendorID
+    pattern: "VN-####"
+    sheet: "16_Vendors"
+    column: VendorID
+    resets: never
+  - key: LastInvoiceNo
+    pattern: "INV-YYYY-####"
+    sheet: null
+    column: null
+    resets: calendar_year
+    notes: "Reserved per SPEC.md §2 naming table; not yet consumed by a sheet in §3 — invoices are a future view over 12_Payments."
+  - key: LastReceiptNo
+    pattern: "RCT-YYYY-####"
+    sheet: "12_Payments"
+    column: ReceiptNumber
+    resets: calendar_year
+  - key: LastExpenseNo
+    pattern: "EXP-YYYY-####"
+    sheet: "14_Expenses"
+    column: ExpenseID
+    resets: calendar_year
+
+# --- TeamList: the one multi-editor table, per docs/decisions/0001 -----
+team_list:
+  columns: [TeamMemberID, Name, Role, Phone, Email]
+  role_values: &team_roles
+    - Photographer
+    - Videographer
+    - Drone Pilot
+    - Assistant
+    - Editor
+    - Album Designer
+    - Driver
+  write_policy: append_or_update_by_id
+  notes: >
+    Per docs/decisions/0001-concurrency.md, this is the only sheet where
+    two people may edit around the same time. Build/VBA must update rows
+    by TeamMemberID rather than blind overwrite.
+
+# --- dropdown/reference lists (SPEC.md §7) ------------------------------
+lists:
+  PackagesList:
+    - Photography
+    - Videography
+    - Photography+Videography
+    - Cinematic Film
+    - Traditional Video
+    - Drone Coverage
+    - Live Streaming
+    - Pre-Wedding
+    - Engagement
+    - Haldi
+    - Mehendi
+    - Reception
+    - Album
+    - Highlight Film
+    - Instagram Reel
+    - Teaser
+
+  ExpenseCategoryList:
+    - Travel
+    - Fuel
+    - Food
+    - Accommodation
+    - Equipment Purchase
+    - Equipment Repair
+    - Freelancer
+    - Salary
+    - Marketing (Facebook/Instagram/Google Ads)
+    - Software
+    - Music Licensing
+    - Cloud Storage
+    - Internet
+    - Electricity
+    - Office Rent
+    - Misc
+
+  LeadSourceList:
+    - Instagram
+    - Facebook
+    - Google
+    - Website
+    - Referral
+    - Wedding Planner
+    - JustDial
+    - WeddingWire
+    - WhatsApp
+    - Walk-in
+
+  TeamRoleList: *team_roles
+
+  PaymentMethodList:
+    - Cash
+    - UPI
+    - Bank Transfer
+    - Cheque
+    - Card
+
+  PipelineStageList:
+    # SPEC.md §3 10_Production_Pipeline references "the 18-stage list:
+    # Inquiry...Archived" without enumerating it. Placeholder sequence
+    # below — confirm exact 18 stages with the client before build;
+    # do not treat this list as final.
+    - Inquiry
+    - Consultation
+    - Quoted
+    - Booked
+    - Pre-Production
+    - Shoot Scheduled
+    - Shoot Completed
+    - Footage Import
+    - Culling/Selection
+    - Rough Cut
+    - Editing
+    - Color Grading
+    - Client Review
+    - Revisions
+    - Final Export
+    - Delivery Prep
+    - Delivered
+    - Archived
+
+  EquipmentCategoryList:
+    - Camera
+    - Lens
+    - Drone
+    - Gimbal
+    - Tripod
+    - Battery
+    - Charger
+    - Memory Card
+    - SSD
+    - Hard Drive
+
+# --- user roles / UI-only tab visibility (SPEC.md §4) -------------------
+# CLAUDE.md caveat: this hides sheet tabs by Windows username
+# (Environ("Username")). It is NOT real access control — do not describe
+# it to users as securing financial data.
+user_role_permissions:
+  columns: [Username, Role, SheetAccess]
+  roles:
+    Admin:
+      visible_sheets: all
+    Manager:
+      visible_sheets: ["01", "02", "03", "04", "05", "06", "07", "12", "13", "14", "15", "16", "17", "18"]
+      notes: "No Settings edit"
+    Editor:
+      visible_sheets: ["09", "10", "11"]
+      notes: "Production only"
+    Sales:
+      visible_sheets: ["01", "02", "03", "04"]
+      notes: "01 limited view; no Finance"
+    Accountant:
+      visible_sheets: ["12", "13", "14", "15", "16", "17", "18"]
+      notes: "No CRM/Production"

@@ -1,0 +1,30 @@
+# 15_Freelancers — SPEC.md §3 "15_Freelancers"
+sheet: "15_Freelancers"
+type: table
+primary_key: FreelancerID
+
+columns:
+  - name: FreelancerID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "FL-####", counter_key: LastFreelancerID}
+
+  - name: Name
+    type: text
+
+  - name: Role
+    type: dropdown
+    list_ref: TeamRoleList
+
+  - name: Phone
+    type: text
+
+  - name: RatePerEvent
+    type: currency
+
+  - name: BankDetails
+    type: text
+
+  - name: TotalPaidYTD
+    type: formula
+    formula: "SUMIFS(14_Expenses.Amount, PaidTo=this.Name, Category='Freelancer', year(Date)=YEAR(TODAY()))"

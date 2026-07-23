@@ -1,0 +1,60 @@
+# 05_Bookings — SPEC.md §3 "05_Bookings"
+sheet: "05_Bookings"
+type: table
+primary_key: BookingID
+
+columns:
+  - name: BookingID
+    type: text
+    primary_key: true
+    id_generation: {pattern: "BK-####", counter_key: LastBookingID}
+
+  - name: ClientID
+    type: text
+    foreign_key: {sheet: "04_Client_Master", column: ClientID}
+
+  - name: QuoteID
+    type: text
+    nullable: true
+    foreign_key: {sheet: "03_Quotation_Manager", column: QuoteID}
+    notes: "Booking can exist without a formal quote"
+
+  - name: EventType
+    type: dropdown
+    list_ref: PackagesList
+
+  - name: PackageValue
+    type: currency
+
+  - name: AdvanceAmount
+    type: currency
+
+  - name: AdvanceDate
+    type: date
+
+  - name: BalanceAmount
+    type: formula
+    formula: "PackageValue - SUMIFS(12_Payments.Amount where BookingID = this.BookingID and Status = 'Cleared')"
+    notes: "Never manually entered — SPEC.md §3 automation note"
+
+  - name: WeddingDate
+    type: date
+
+  - name: VenueName
+    type: text
+
+  - name: VenueMapLink
+    type: text
+    format: hyperlink
+
+  - name: DeliveryDeadline
+    type: formula
+    formula: "WeddingDate + 19_Settings.values.DefaultDeliveryDays"
+
+  - name: Status
+    type: dropdown
+    values: [Confirmed, "In Progress", Delivered, Cancelled]
+
+validation_rules:
+  - "A Booking cannot be created without an existing ClientID (SPEC.md §9)."
+  - "Payment.Amount cannot cause BalanceAmount < 0 without a Refund PaymentType (SPEC.md §9)."
