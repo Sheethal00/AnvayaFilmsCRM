@@ -67,7 +67,7 @@ FORMULA_TEMPLATES: dict[str, dict[str, str]] = {
         "LineTotal": "=C2*D2",
     },
     "06_Wedding_Calendar": {
-        "CountdownDays": "=D2-TODAY()",
+        "CountdownDays": "=C2-TODAY()",
     },
     "10_Production_Pipeline": {
         "DaysInCurrentStage": "=TODAY()-C2",
@@ -88,6 +88,15 @@ FORMULA_TEMPLATES: dict[str, dict[str, str]] = {
             "'14_Expenses'!B:B,\">=\"&DATE(YEAR(TODAY()),1,1))"
         ),
     },
+}
+
+# Excel tends to inherit "Date" display format on cells that subtract two
+# dates, even when the result is a plain day-count, not a date — masking
+# real values (or blank-input artifacts) as nonsensical dates. Force these
+# formula columns back to a number format explicitly.
+FORMULA_NUMBER_FORMATS: dict[str, dict[str, str]] = {
+    "06_Wedding_Calendar": {"CountdownDays": "0"},
+    "10_Production_Pipeline": {"DaysInCurrentStage": "0"},
 }
 
 STATUS_COLORS = {
@@ -227,10 +236,13 @@ def apply_formula_row(ws, columns: list[dict], sheet_name: str) -> None:
     if not templates:
         return
 
+    number_formats = FORMULA_NUMBER_FORMATS.get(sheet_name, {})
     for col_idx, col in enumerate(columns, start=1):
         formula = templates.get(col["name"])
         if formula:
-            ws.cell(row=2, column=col_idx, value=formula)
+            cell = ws.cell(row=2, column=col_idx, value=formula)
+            if col["name"] in number_formats:
+                cell.number_format = number_formats[col["name"]]
 
     last_col_letter = ws.cell(row=1, column=len(columns)).column_letter
     table_name = "tbl_" + re.sub(r"[^0-9A-Za-z_]", "_", sheet_name)

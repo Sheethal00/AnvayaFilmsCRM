@@ -45,10 +45,16 @@ studio actually organizes work?
 
 ## 5. Try adding a new row
 
-On `05_Bookings`, `03_Quotation_Manager`, or `06_Wedding_Calendar`, type a
-new row directly under the existing sample row. The formula columns
-should fill in automatically for that new row too — confirm it keeps
-working, not just for the one sample row.
+- `05_Bookings` has a filled-in sample row (`BK-0001`). Type a new row
+  directly under it — `BalanceAmount`/`DeliveryDeadline` should
+  auto-fill for that new row too, not just the sample one.
+- `03_Quotation_Manager` and `06_Wedding_Calendar` don't have sample data
+  — row 2 there only holds a formula with blank inputs either side of
+  it (so it may show `0` or a formula error, that's expected). Type
+  values into row 2 itself, or a new row under it, and confirm the
+  formula column (`Subtotal`/`GST%`/`GSTAmount`/`Total` on Quotation
+  Manager, `CountdownDays` on Wedding Calendar) fills in and recalculates
+  as you'd expect.
 
 ## 6. Note what feels wrong or missing
 
