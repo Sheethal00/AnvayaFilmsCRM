@@ -55,12 +55,24 @@ studio actually organizes work?
   Manager, `CountdownDays` on Wedding Calendar) fills in and recalculates
   as you'd expect.
 
-## 6. Note what feels wrong or missing
+## 6. Check the Dashboard tab
+
+`01_Dashboard` now shows real numbers pulled live from the other sheets —
+Total Leads, Conversion Rate, Revenue (this month/year), Outstanding
+Payments, Upcoming Weddings, Employee Workload, Equipment Utilization.
+With only the sample data loaded, most of these will be small or zero —
+that's expected, not a bug. Try changing a lead's `Status` to `Won`, or a
+payment's `Status` to `Cleared`, and confirm the relevant Dashboard number
+updates (may need to press F9 or wait for a recalculation).
+
+## 7. Note what feels wrong or missing
 
 Especially:
 - The dropdown lists — packages, expense categories, lead sources — the
   master copies live on the `19_Settings` tab
 - Whether the sheet layout matches actual day-to-day workflow
+- Whether the Dashboard KPIs (step 6) are the numbers that actually
+  matter day-to-day, or if something's missing/unnecessary
 
 ## What's not here yet — don't test these, they're not bugs
 
@@ -71,7 +83,6 @@ This build has no VBA (macros), so none of the following works yet:
   same date
 - No auto-conversion of a lead to a client when Status is set to Won
 - No stage-history logging when `CurrentStage` changes
-- `01_Dashboard` is empty — no KPI tiles or pivot views wired up yet
 
 These all exist as written VBA code already (`vba/modules/`,
 `vba/classes/`) — they just aren't embedded in this particular file. See
