@@ -28,10 +28,9 @@ studio actually organizes work?
 
 - `02_CRM_Leads` → click any cell in the `Source` or `Status` column → a
   small dropdown arrow appears → click it to see the options.
-- `10_Production_Pipeline` → `CurrentStage` — **this is the main thing
-  worth reacting to.** The 18-stage list (Inquiry → Archived) is a
-  placeholder guess at the real workflow, not something confirmed with
-  you yet. Is it right? Missing a step? Wrong order?
+- `10_Production_Pipeline` → `CurrentStage` — the 18-stage list
+  (Inquiry → Archived) was reviewed and confirmed already (2026-07-25),
+  so this is just for reference now, not something to re-litigate.
 
 ## 4. Check the sample data
 
@@ -59,7 +58,6 @@ studio actually organizes work?
 ## 6. Note what feels wrong or missing
 
 Especially:
-- The 18 pipeline stages (see step 3)
 - The dropdown lists — packages, expense categories, lead sources — the
   master copies live on the `19_Settings` tab
 - Whether the sheet layout matches actual day-to-day workflow

@@ -250,7 +250,7 @@ without changing the schema — original spec listed items as static bullets.
 | Column | Type | Notes |
 |---|---|---|
 | BookingID | Text (FK → 05, unique — one row per booking) | |
-| CurrentStage | Dropdown(the 18-stage list: Inquiry…Archived) | |
+| CurrentStage | Dropdown(the 18-stage list: Inquiry…Archived — see `schema/19_settings.yaml` `PipelineStageList`; confirmed with client, [docs/decisions/0003-pipeline-stages-confirmed.md](decisions/0003-pipeline-stages-confirmed.md)) | |
 | StageEnteredDate | Date | Updated each time CurrentStage changes |
 | AssignedEditor | Lookup(19_Settings.TeamList) | |
 | DaysInCurrentStage | Formula | `TODAY() - StageEnteredDate` — flags stuck projects |

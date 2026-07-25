@@ -167,10 +167,8 @@ lists:
     - Card
 
   PipelineStageList:
-    # SPEC.md §3 10_Production_Pipeline references "the 18-stage list:
-    # Inquiry...Archived" without enumerating it. Placeholder sequence
-    # below — confirm exact 18 stages with the client before build;
-    # do not treat this list as final.
+    # Confirmed with client 2026-07-25 — see
+    # docs/decisions/0003-pipeline-stages-confirmed.md.
     - Inquiry
     - Consultation
     - Quoted
