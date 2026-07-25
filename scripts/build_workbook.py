@@ -99,6 +99,62 @@ FORMULA_NUMBER_FORMATS: dict[str, dict[str, str]] = {
     "10_Production_Pipeline": {"DaysInCurrentStage": "0"},
 }
 
+# 01_Dashboard KPI tiles (SPEC.md §3 "01_Dashboard"). Not a per-row Table
+# like the sheets above — a fixed label/value layout, built directly from
+# this list rather than the generic per-column loop (see
+# build_dashboard_sheet). Each tuple is (label, formula, number_format).
+#
+# "Employee Workload" deviates from SPEC.md's literal
+# `Status="Active"` — 07_Team_Allocation's actual Status dropdown
+# (schema/07_team_allocation.yaml) is Assigned/Confirmed/Completed/
+# No-show, no "Active" value exists. Treated as Assigned + Confirmed
+# (allocated but not yet Completed/No-show) since that's the closest
+# real equivalent to "currently active."
+DASHBOARD_KPIS: list[tuple[str, str, str | None]] = [
+    ("Total Leads", "=COUNTA('02_CRM_Leads'!A:A)-1", None),
+    (
+        "Conversion Rate",
+        '=IFERROR(COUNTIF(\'02_CRM_Leads\'!J:J,"Won")/(COUNTA(\'02_CRM_Leads\'!A:A)-1),0)',
+        "0%",
+    ),
+    (
+        "Revenue (This Month)",
+        "=SUMIFS('12_Payments'!D:D,'12_Payments'!H:H,\"Cleared\","
+        "'12_Payments'!E:E,\">=\"&DATE(YEAR(TODAY()),MONTH(TODAY()),1),"
+        "'12_Payments'!E:E,\"<\"&EDATE(DATE(YEAR(TODAY()),MONTH(TODAY()),1),1))",
+        "#,##0",
+    ),
+    (
+        "Revenue (This Year)",
+        "=SUMIFS('12_Payments'!D:D,'12_Payments'!H:H,\"Cleared\","
+        "'12_Payments'!E:E,\">=\"&DATE(YEAR(TODAY()),1,1))",
+        "#,##0",
+    ),
+    (
+        "Outstanding Payments",
+        '=SUMIFS(\'12_Payments\'!D:D,\'12_Payments\'!H:H,"Pending")',
+        "#,##0",
+    ),
+    (
+        "Upcoming Weddings (30 days)",
+        "=COUNTIFS('06_Wedding_Calendar'!C:C,\">=\"&TODAY(),"
+        "'06_Wedding_Calendar'!C:C,\"<=\"&TODAY()+30)",
+        None,
+    ),
+    (
+        "Employee Workload (active allocations)",
+        '=COUNTIF(\'07_Team_Allocation\'!F:F,"Assigned")'
+        '+COUNTIF(\'07_Team_Allocation\'!F:F,"Confirmed")',
+        None,
+    ),
+    (
+        "Equipment Utilization",
+        "=IFERROR(COUNTIF('08_Equipment'!F:F,\"Assigned\")"
+        "/(COUNTA('08_Equipment'!A:A)-1),0)",
+        "0%",
+    ),
+]
+
 STATUS_COLORS = {
     # Applied only to columns literally named "Status" — enough sheets
     # share that column name that a generic rule is worth it; anything
@@ -147,6 +203,10 @@ def build_structure(wb: Workbook, schemas: list[dict]) -> dict[str, str]:
             named_ranges = build_settings_sheet(ws, schema)
             continue
 
+        if sheet_name == "01_Dashboard":
+            build_dashboard_sheet(ws, schema)
+            continue
+
         columns = schema.get("columns")
         if not columns:
             ws["A1"] = f"{sheet_name} — {schema.get('type', 'view')} sheet"
@@ -167,6 +227,29 @@ def build_structure(wb: Workbook, schemas: list[dict]) -> dict[str, str]:
         apply_formula_row(ws, columns, sheet_name)
 
     return named_ranges
+
+
+def build_dashboard_sheet(ws, schema: dict) -> None:
+    """01_Dashboard is read-only — no stored data, just formulas pulling
+    live from other sheets (SPEC.md §3). Written directly from
+    DASHBOARD_KPIS instead of the generic per-column loop, since there's
+    no per-row Table semantics here (nothing to add rows to).
+    """
+    bold = Font(bold=True)
+    ws["A1"] = "KPI"
+    ws["B1"] = "Value"
+    ws["A1"].font = bold
+    ws["B1"].font = bold
+
+    for row_idx, (label, formula, number_format) in enumerate(DASHBOARD_KPIS, start=2):
+        ws.cell(row=row_idx, column=1, value=label)
+        cell = ws.cell(row=row_idx, column=2, value=formula)
+        if number_format:
+            cell.number_format = number_format
+
+    ws.column_dimensions["A"].width = 34
+    ws.column_dimensions["B"].width = 16
+    ws.freeze_panes = "A2"
 
 
 def build_settings_sheet(ws, schema: dict) -> dict[str, str]:
