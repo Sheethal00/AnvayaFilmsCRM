@@ -14,7 +14,7 @@ columns:
   - name: CurrentStage
     type: dropdown
     list_ref: PipelineStageList
-    notes: "18-stage list, Inquiry...Archived — see schema/19_settings.yaml PipelineStageList placeholder"
+    notes: "18-stage list, Inquiry...Archived — see schema/19_settings.yaml PipelineStageList (confirmed, docs/decisions/0003-pipeline-stages-confirmed.md)"
 
   - name: StageEnteredDate
     type: date

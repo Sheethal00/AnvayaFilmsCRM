@@ -1,0 +1,6 @@
+AllocationID,BookingID,TeamMemberID,Role,EventDate,Status
+AL-0001,BK-0001,TM-0001,Photographer,2026-11-14,Confirmed
+AL-0002,BK-0001,TM-0002,Videographer,2026-11-14,Confirmed
+AL-0003,BK-0001,TM-0003,Drone Pilot,2026-11-14,Assigned
+AL-0004,BK-0002,TM-0001,Photographer,2026-02-14,Completed
+AL-0005,BK-0002,TM-0004,Editor,2026-02-14,Completed

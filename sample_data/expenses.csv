@@ -1,0 +1,8 @@
+ExpenseID,Date,Category,Description,Amount,LinkedBookingID,PaidTo,PaymentMethod
+EXP-2026-0001,2026-01-15,Marketing (Facebook/Instagram/Google Ads),Instagram ad boost - January,8000,,,UPI
+EXP-2026-0002,2026-02-16,Freelancer,Second shooter fee - BK-0002 wedding day,15000,BK-0002,Vikram Shah,Bank Transfer
+EXP-2026-0003,2026-02-16,Freelancer,Drone pilot fee - BK-0002 wedding day,12000,BK-0002,Ritu Malhotra,Bank Transfer
+EXP-2026-0004,2026-03-05,Misc,Extra lighting rig rental - BK-0002 album shoot,6000,BK-0002,Lakshya Rentals,UPI
+EXP-2026-0005,2026-03-20,Equipment Purchase,Album printing - BK-0002 (30-page album),18000,BK-0002,PrintCraft Studios,Bank Transfer
+EXP-2026-0006,2026-06-01,Software,Adobe Creative Cloud - annual renewal,45000,,,Card
+EXP-2026-0007,2026-07-10,Fuel,Fuel for BK-0001 site recce,2500,BK-0001,,Cash

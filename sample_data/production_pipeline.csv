@@ -1,0 +1,3 @@
+BookingID,CurrentStage,StageEnteredDate,AssignedEditor,DaysInCurrentStage,Notes
+BK-0001,Booked,2026-01-10,Kavya Reddy,,Pre-production planning begins roughly 3 months before the wedding
+BK-0002,Archived,2026-03-28,Kavya Reddy,,Delivered and archived after client sign-off
