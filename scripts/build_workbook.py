@@ -155,6 +155,33 @@ DASHBOARD_KPIS: list[tuple[str, str, str | None]] = [
     ),
 ]
 
+
+def _month_start_formula(n: int) -> str:
+    """First-of-month date, n months after Jan 1 of the current calendar
+    year — self-adjusting off TODAY() rather than a hardcoded year, so
+    13_Income/17_Accounting's 12-month grid always shows the current
+    calendar year without needing a rebuild every January."""
+    return f"EDATE(DATE(YEAR(TODAY()),1,1),{n})"
+
+
+def _month_income_formula(n: int) -> str:
+    start = _month_start_formula(n)
+    end = _month_start_formula(n + 1)
+    return (
+        "=SUMIFS('12_Payments'!D:D,'12_Payments'!H:H,\"Cleared\","
+        f"'12_Payments'!E:E,\">=\"&{start},'12_Payments'!E:E,\"<\"&{end})"
+    )
+
+
+def _month_expense_formula(n: int) -> str:
+    start = _month_start_formula(n)
+    end = _month_start_formula(n + 1)
+    return (
+        "=SUMIFS('14_Expenses'!E:E,'14_Expenses'!B:B,"
+        f"\">=\"&{start},'14_Expenses'!B:B,\"<\"&{end})"
+    )
+
+
 STATUS_COLORS = {
     # Applied only to columns literally named "Status" — enough sheets
     # share that column name that a generic rule is worth it; anything
@@ -207,6 +234,18 @@ def build_structure(wb: Workbook, schemas: list[dict]) -> dict[str, str]:
             build_dashboard_sheet(ws, schema)
             continue
 
+        if sheet_name == "13_Income":
+            build_income_sheet(ws)
+            continue
+
+        if sheet_name == "17_Accounting":
+            build_accounting_sheet(ws)
+            continue
+
+        if sheet_name == "18_Reports":
+            build_reports_sheet(ws, lists)
+            continue
+
         columns = schema.get("columns")
         if not columns:
             ws["A1"] = f"{sheet_name} — {schema.get('type', 'view')} sheet"
@@ -249,6 +288,263 @@ def build_dashboard_sheet(ws, schema: dict) -> None:
 
     ws.column_dimensions["A"].width = 34
     ws.column_dimensions["B"].width = 16
+    ws.freeze_panes = "A2"
+
+
+def build_income_sheet(ws) -> None:
+    """13_Income (SPEC.md §3) — filtered/grouped VIEW of 12_Payments where
+    Status=Cleared, by month. Not a separately maintained sheet; nothing
+    here is typed in by hand, it's all live formulas over 12_Payments.
+    """
+    bold = Font(bold=True)
+    ws["A1"] = "Month"
+    ws["B1"] = "Income (Cleared Payments)"
+    ws["A1"].font = bold
+    ws["B1"].font = bold
+
+    for n in range(12):
+        row = 2 + n
+        cell_a = ws.cell(row=row, column=1, value=f"={_month_start_formula(n)}")
+        cell_a.number_format = "mmm yyyy"
+        cell_b = ws.cell(row=row, column=2, value=_month_income_formula(n))
+        cell_b.number_format = "#,##0"
+
+    total_row = 14
+    ws.cell(row=total_row, column=1, value="Total").font = bold
+    total_cell = ws.cell(row=total_row, column=2, value="=SUM(B2:B13)")
+    total_cell.number_format = "#,##0"
+    total_cell.font = bold
+
+    ws.column_dimensions["A"].width = 14
+    ws.column_dimensions["B"].width = 20
+    ws.freeze_panes = "A2"
+
+
+def build_accounting_sheet(ws) -> None:
+    """17_Accounting (SPEC.md §3) — Monthly P&L and Cash Flow, both rollup
+    views over 12_Payments + 14_Expenses, no separately entered data.
+    P&L and Cash Flow collapse to the same monthly net here because this
+    is a cash-basis single ledger (no accrual/AR/AP) — the Cumulative
+    Cash Flow column is what actually distinguishes the two, showing the
+    running balance rather than just the monthly delta.
+    """
+    bold = Font(bold=True)
+    headers = ["Month", "Income", "Expenses", "Net P&L", "Cumulative Cash Flow"]
+    for col_idx, header in enumerate(headers, start=1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.font = bold
+
+    for n in range(12):
+        row = 2 + n
+        cell_a = ws.cell(row=row, column=1, value=f"={_month_start_formula(n)}")
+        cell_a.number_format = "mmm yyyy"
+        ws.cell(row=row, column=2, value=_month_income_formula(n)).number_format = "#,##0"
+        ws.cell(row=row, column=3, value=_month_expense_formula(n)).number_format = "#,##0"
+        ws.cell(row=row, column=4, value=f"=B{row}-C{row}").number_format = "#,##0"
+        ws.cell(row=row, column=5, value=f"=SUM($D$2:D{row})").number_format = "#,##0"
+
+    total_row = 14
+    ws.cell(row=total_row, column=1, value="Total").font = bold
+    for col_letter in ("B", "C", "D"):
+        cell = ws.cell(
+            row=total_row,
+            column=ord(col_letter) - ord("A") + 1,
+            value=f"=SUM({col_letter}2:{col_letter}13)",
+        )
+        cell.number_format = "#,##0"
+        cell.font = bold
+    ws.cell(row=total_row, column=5, value="=E13").number_format = "#,##0"
+    ws.cell(row=total_row, column=5).font = bold
+
+    for col_letter, width in (("A", 14), ("B", 16), ("C", 16), ("D", 16), ("E", 20)):
+        ws.column_dimensions[col_letter].width = width
+    ws.freeze_panes = "A2"
+
+
+# 18_Reports (SPEC.md §3) section list. Each entry is
+# (section_title, header_row, category_values, category_formula_fn) where
+# category_formula_fn(category_cell_ref) -> list[str] returns one formula
+# per data column. Categories are the fixed enumerated lists these reports
+# group by (schema/19_settings.yaml lists + 02_CRM_Leads.Status values) —
+# bounded, so a static formula grid works instead of a real PivotTable
+# (openpyxl can't author a live/refreshable one).
+def build_reports_sheet(ws, lists: dict) -> None:
+    bold = Font(bold=True)
+    section_fill_font = Font(bold=True, size=12)
+    row = 1
+
+    def section_title(text: str) -> int:
+        nonlocal row
+        ws.cell(row=row, column=1, value=text).font = section_fill_font
+        row += 1
+        return row
+
+    def header(*names: str) -> None:
+        nonlocal row
+        for col_idx, name in enumerate(names, start=1):
+            ws.cell(row=row, column=col_idx, value=name).font = bold
+        row += 1
+
+    def data_row(values: list, number_format: str | None = None) -> int:
+        nonlocal row
+        this_row = row
+        for col_idx, value in enumerate(values, start=1):
+            cell = ws.cell(row=this_row, column=col_idx, value=value)
+            if number_format and col_idx > 1:
+                cell.number_format = number_format
+        row += 1
+        return this_row
+
+    def total_row(label: str, cols: list[str], first_data_row: int, last_data_row: int) -> None:
+        nonlocal row
+        ws.cell(row=row, column=1, value=label).font = bold
+        for col_letter in cols:
+            cell = ws.cell(
+                row=row,
+                column=ord(col_letter) - ord("A") + 1,
+                value=f"=SUM({col_letter}{first_data_row}:{col_letter}{last_data_row})",
+            )
+            cell.font = bold
+        row += 1
+
+    def blank_line() -> None:
+        nonlocal row
+        row += 1
+
+    # --- 1. Period Summary (covers the spec's Daily/Weekly/Monthly/
+    # Quarterly/Annual ask; a full second monthly grid would just repeat
+    # 17_Accounting, so this is period-to-date snapshots instead) --------
+    section_title("Period Summary (Income vs Expenses, period-to-date)")
+    header("Period", "Income", "Expenses", "Net")
+    periods = [
+        ("This Week", "TODAY()-6", "TODAY()"),
+        ("This Month", "DATE(YEAR(TODAY()),MONTH(TODAY()),1)", "TODAY()"),
+        (
+            "This Quarter",
+            "DATE(YEAR(TODAY()),INT((MONTH(TODAY())-1)/3)*3+1,1)",
+            "TODAY()",
+        ),
+        ("This Year", "DATE(YEAR(TODAY()),1,1)", "TODAY()"),
+    ]
+    first_data_row = row
+    for label, start, end in periods:
+        income = (
+            "=SUMIFS('12_Payments'!D:D,'12_Payments'!H:H,\"Cleared\","
+            f"'12_Payments'!E:E,\">=\"&{start},'12_Payments'!E:E,\"<=\"&{end})"
+        )
+        expense = (
+            "=SUMIFS('14_Expenses'!E:E,"
+            f"'14_Expenses'!B:B,\">=\"&{start},'14_Expenses'!B:B,\"<=\"&{end})"
+        )
+        r = data_row([label, income, expense, None], number_format="#,##0")
+        ws.cell(row=r, column=4, value=f"=B{r}-C{r}").number_format = "#,##0"
+    blank_line()
+
+    # --- 2. Bookings & Revenue by Package (merges the spec's separate
+    # "Revenue Report" package dimension and "Package Report" — both group
+    # by the same EventType/Package field on 05_Bookings, so one table
+    # covers both) --------------------------------------------------------
+    section_title("Bookings & Revenue by Package")
+    header("Package", "Bookings", "Total Package Value")
+    first_data_row = row
+    for package in lists.get("PackagesList", []):
+        data_row(
+            [
+                package,
+                f"=COUNTIF('05_Bookings'!D:D,A{row})",
+                f"=SUMIF('05_Bookings'!D:D,A{row},'05_Bookings'!E:E)",
+            ],
+            number_format="#,##0",
+        )
+    total_row("Total", ["B", "C"], first_data_row, row - 1)
+    blank_line()
+
+    # --- 3. Expense Report, by category -----------------------------------
+    section_title("Expenses by Category")
+    header("Category", "Total Amount")
+    first_data_row = row
+    for category in lists.get("ExpenseCategoryList", []):
+        data_row(
+            [category, f"=SUMIF('14_Expenses'!C:C,A{row},'14_Expenses'!E:E)"],
+            number_format="#,##0",
+        )
+    total_row("Total", ["B"], first_data_row, row - 1)
+    blank_line()
+
+    # --- 4. Lead Report, by source and by status --------------------------
+    section_title("Leads by Source")
+    header("Source", "Lead Count")
+    first_data_row = row
+    for source in lists.get("LeadSourceList", []):
+        data_row([source, f"=COUNTIF('02_CRM_Leads'!F:F,A{row})"])
+    total_row("Total", ["B"], first_data_row, row - 1)
+    blank_line()
+
+    section_title("Leads by Status")
+    header("Status", "Lead Count")
+    # Mirrors 02_CRM_Leads.yaml's Status column values — not in
+    # 19_Settings.lists since it's an inline `values:` list, not a
+    # list_ref, so it isn't available via the `lists` dict here.
+    lead_statuses = ["New", "Contacted", "Quoted", "Negotiating", "Won", "Lost"]
+    first_data_row = row
+    for status in lead_statuses:
+        data_row([status, f"=COUNTIF('02_CRM_Leads'!J:J,A{row})"])
+    total_row("Total", ["B"], first_data_row, row - 1)
+    blank_line()
+
+    # --- 5. Employee Performance -------------------------------------------
+    # SPEC.md asks for "avg. days per stage" grouped by TeamMemberID, but
+    # 10a_Pipeline_History (SPEC.md §3) has no editor/team-member column —
+    # only BookingID/Stage/EnteredDate/ExitedDate — so there's no field to
+    # group by per-editor. This reports avg. days per stage aggregated
+    # across all bookings/editors instead; a per-editor breakdown would
+    # need a schema change (an editor column on 10a_Pipeline_History).
+    section_title("Average Days Per Pipeline Stage (all editors — see note)")
+    ws.cell(
+        row=row,
+        column=1,
+        value=(
+            "10a_Pipeline_History has no per-stage editor column, so this "
+            "can't be broken down by TeamMemberID as SPEC.md describes — "
+            "aggregated across all bookings instead."
+        ),
+    ).font = Font(italic=True, size=9)
+    row += 1
+    header("Stage", "Avg Days (closed stage instances)")
+    hist_range = "'10a_Pipeline_History'!"
+    for stage in lists.get("PipelineStageList", []):
+        formula = (
+            f"=IFERROR(SUMPRODUCT(({hist_range}$B$2:$B$5000=A{row})*"
+            f"({hist_range}$D$2:$D$5000<>\"\")*"
+            f"({hist_range}$D$2:$D$5000-{hist_range}$C$2:$C$5000))/"
+            f"SUMPRODUCT(({hist_range}$B$2:$B$5000=A{row})*"
+            f"({hist_range}$D$2:$D$5000<>\"\")),0)"
+        )
+        data_row([stage, formula], number_format="0.0")
+    blank_line()
+
+    # --- 6. Client Report: lifetime value & repeat bookings ----------------
+    # Fixed-capacity (50 rows) live pass-through of 04_Client_Master +
+    # a repeat-booking count — IF-guarded so it reads blank, not 0/#REF,
+    # past however many clients actually exist.
+    section_title("Client Report (lifetime value & repeat bookings)")
+    header("ClientID", "Client Name", "Bookings", "Lifetime Value")
+    for src in range(2, 52):  # 04_Client_Master row 2 = its first client
+        this_row = row
+        guard = f"'04_Client_Master'!A{src}=\"\""
+        data_row(
+            [
+                f"=IF({guard},\"\",'04_Client_Master'!A{src})",
+                f"=IF({guard},\"\",'04_Client_Master'!B{src})",
+                f"=IF({guard},\"\",COUNTIF('05_Bookings'!B:B,'04_Client_Master'!A{src}))",
+                f"=IF({guard},\"\",'04_Client_Master'!I{src})",
+            ],
+            number_format=None,
+        )
+        ws.cell(row=this_row, column=4).number_format = "#,##0"
+
+    for col_letter, width in (("A", 24), ("B", 16), ("C", 24), ("D", 20)):
+        ws.column_dimensions[col_letter].width = width
     ws.freeze_panes = "A2"
 
 
