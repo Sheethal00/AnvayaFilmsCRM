@@ -43,8 +43,13 @@ Line items priced separately (album, drone, highlight film…) instead of
 one lump sum.
 
 - **You fill in:** `LeadID, DateIssued, PackageSelected, ValidUntil,
-  Status`; per line item: `ItemDescription, Qty, UnitPrice`.
-- **Computed automatically:** `QuoteID` `[macro]`; `LineTotal` = Qty ×
+  Status`; per line item: pick `ItemDescription` from the item catalog
+  dropdown, then `Qty` and (if you want something other than the
+  suggested price) `UnitPrice`.
+- **Computed automatically:** `QuoteID` `[macro]`; `UnitPrice` —
+  auto-suggested from `19_Settings`'s item catalog the moment you pick
+  `ItemDescription`, but only while it's still blank — never overwrites
+  a price you've already typed or edited `[macro]`; `LineTotal` = Qty ×
   UnitPrice `[formula]`; `Subtotal, GST%, GSTAmount, Total` `[formula]`.
 
 ## 3. Client record — `04_Client_Master`

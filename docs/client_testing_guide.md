@@ -83,6 +83,9 @@ This build has no VBA (macros), so none of the following works yet:
   same date
 - No auto-conversion of a lead to a client when Status is set to Won
 - No stage-history logging when `CurrentStage` changes
+- Picking an `ItemDescription` on `03a_Quotation_LineItems` does **not**
+  auto-suggest `UnitPrice` yet — the dropdown itself works (it's a
+  formula-free feature), but the price fill-in is macro-driven
 
 These all exist as written VBA code already (`vba/modules/`,
 `vba/classes/`) — they just aren't embedded in this particular file. See

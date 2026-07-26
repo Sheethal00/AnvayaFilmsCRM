@@ -209,6 +209,23 @@ def load_schemas() -> list[dict]:
 def build_structure(wb: Workbook, schemas: list[dict]) -> dict[str, str]:
     settings = next((s for s in schemas if s["sheet"] == "19_Settings"), None)
     lists = settings.get("lists", {}) if settings else {}
+    # ItemCatalog isn't hand-maintained under `lists:` (see
+    # schema/19_settings.yaml item_catalog) — derived here so
+    # apply_data_validation's generic list_ref lookup just works, with a
+    # single source of truth for the item names.
+    #
+    # It's also long enough (17 items) to blow past Excel's 255-char
+    # limit on an inline list validation ("A,B,C,..." as one literal
+    # string) — the other `lists:` entries all happen to fit under that,
+    # but this one doesn't, so it needs a real range reference instead.
+    # build_settings_sheet writes the same items to 19_Settings!N2:N{n},
+    # so list_ranges points the dropdown there rather than inlining text.
+    list_ranges: dict[str, str] = {}
+    if settings:
+        catalog_items = settings.get("item_catalog", {}).get("items", [])
+        if catalog_items:
+            lists["ItemCatalog"] = [item["name"] for item in catalog_items]
+            list_ranges["ItemCatalog"] = f"'19_Settings'!$N$2:$N${1 + len(catalog_items)}"
 
     # Sort so numeric sheet prefixes come out in SPEC.md order (01, 02, 03a...).
     schemas_sorted = sorted(schemas, key=lambda s: s["sheet"])
@@ -259,7 +276,7 @@ def build_structure(wb: Workbook, schemas: list[dict]) -> dict[str, str]:
                 12, len(col["name"]) + 2
             )
 
-            apply_data_validation(ws, col, col_idx, lists)
+            apply_data_validation(ws, col, col_idx, lists, list_ranges)
             apply_conditional_formatting(ws, col, col_idx)
 
         ws.freeze_panes = "A2"
@@ -593,7 +610,17 @@ def build_settings_sheet(ws, schema: dict) -> dict[str, str]:
         cell = ws.cell(row=1, column=8 + idx, value=col_name)
         cell.font = bold
 
-    for col_letter in ("A", "B", "C", "E", "F", "H", "I", "J", "K", "L"):
+    # --- item catalog: N (name), O (default price) — pre-populated from
+    # schema, since these are business-set defaults, not staff-entered
+    # data like TeamList. Read at runtime by
+    # vba/modules/ItemCatalog.bas.
+    ws.cell(row=1, column=14, value="ItemName").font = bold
+    ws.cell(row=1, column=15, value="DefaultPrice").font = bold
+    for idx, item in enumerate(schema.get("item_catalog", {}).get("items", []), start=2):
+        ws.cell(row=idx, column=14, value=item["name"])
+        ws.cell(row=idx, column=15, value=item["price"]).number_format = "#,##0"
+
+    for col_letter in ("A", "B", "C", "E", "F", "H", "I", "J", "K", "L", "N", "O"):
         ws.column_dimensions[col_letter].width = 18
 
     ws.freeze_panes = "A2"
@@ -632,20 +659,28 @@ def apply_formula_row(ws, columns: list[dict], sheet_name: str) -> None:
     ws.add_table(table)
 
 
-def apply_data_validation(ws, col: dict, col_idx: int, lists: dict) -> None:
+def apply_data_validation(
+    ws, col: dict, col_idx: int, lists: dict, list_ranges: dict[str, str] | None = None
+) -> None:
     col_type = col.get("type")
     values = None
+    range_ref = None
 
     if col_type == "dropdown":
         if "values" in col:
             values = col["values"]
         elif "list_ref" in col:
             values = lists.get(col["list_ref"])
+            if list_ranges:
+                range_ref = list_ranges.get(col["list_ref"])
 
     if not values:
         return
 
-    formula = '"' + ",".join(str(v) for v in values) + '"'
+    # Prefer a real range reference over an inline "A,B,C" literal —
+    # Excel's inline list validation caps out at 255 characters, which a
+    # long enough list (e.g. ItemCatalog) silently exceeds.
+    formula = range_ref if range_ref else ('"' + ",".join(str(v) for v in values) + '"')
     dv = DataValidation(type="list", formula1=formula, allow_blank=True)
     dv.error = "Value must be one of the allowed options."
     dv.errorTitle = "Invalid entry"

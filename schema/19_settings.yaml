@@ -107,25 +107,55 @@ team_list:
     two people may edit around the same time. Build/VBA must update rows
     by TeamMemberID rather than blind overwrite.
 
+# --- ItemCatalog: default per-line-item prices ---------------------------
+# 03a_Quotation_LineItems.ItemDescription's dropdown pulls its values from
+# `items` below (build_workbook.py derives it into the generic `lists`
+# dict as "ItemCatalog" — see build_structure). UnitPrice is a plain
+# editable currency field, not a formula: vba/modules/ItemCatalog.bas +
+# vba/classes/03a_Quotation_LineItems.cls auto-suggest the price from
+# here the moment ItemDescription is picked, but only if UnitPrice is
+# still blank, so a negotiated/custom price on an existing line is never
+# overwritten.
+item_catalog:
+  items:
+    - {name: "Full Day Photography", price: 150000}
+    - {name: "Half Day Photography", price: 90000}
+    - {name: "Full Day Videography", price: 140000}
+    - {name: "Cinematic Highlight Film", price: 75000}
+    - {name: "Traditional Video", price: 60000}
+    - {name: "Drone Coverage", price: 20000}
+    - {name: "Live Streaming", price: 25000}
+    - {name: "Pre-Wedding Shoot", price: 35000}
+    - {name: "Engagement Coverage", price: 30000}
+    - {name: "Album (20 pages)", price: 22000}
+    - {name: "Album (30 pages)", price: 30000}
+    - {name: "Album (40 pages)", price: 38000}
+    - {name: "Second Photographer", price: 25000}
+    - {name: "Second Videographer", price: 25000}
+    - {name: "Extra Hour Coverage", price: 8000}
+    - {name: "Teaser Video", price: 15000}
+    - {name: "Instagram Reel Edit", price: 8000}
+
 # --- dropdown/reference lists (SPEC.md §7) ------------------------------
 lists:
-  PackagesList:
-    - Photography
-    - Videography
-    - Photography+Videography
-    - Cinematic Film
-    - Traditional Video
-    - Drone Coverage
-    - Live Streaming
+  PackagesList:              
     - Pre-Wedding
     - Engagement
     - Haldi
     - Mehendi
     - Reception
-    - Album
-    - Highlight Film
+    - Album    
     - Instagram Reel
     - Teaser
+    - Muhurtha
+    - Wedding
+    - Baby shower
+    - Maternity shoot
+    - Car revealing
+    - Birthday
+    - House warming
+    - Others
+    - Corporate event
 
   ExpenseCategoryList:
     - Travel

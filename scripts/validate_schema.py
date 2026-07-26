@@ -72,6 +72,11 @@ def check_foreign_keys(schemas: dict[str, dict], errors: list[str]) -> None:
 def check_list_refs(schemas: dict[str, dict], errors: list[str]) -> None:
     settings = schemas.get("19_Settings", {})
     known_lists = set(settings.get("lists", {}).keys())
+    # ItemCatalog isn't under `lists:` since it's a name+price sub-table
+    # (like team_list), not a flat list — but it still resolves as a
+    # valid list_ref via build_workbook.py build_structure().
+    if settings.get("item_catalog", {}).get("items"):
+        known_lists.add("ItemCatalog")
     for sheet_name, schema in schemas.items():
         for col in schema.get("columns", []):
             list_ref = col.get("list_ref")

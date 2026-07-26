@@ -33,9 +33,9 @@ pywin32.
    modules — use File → Import File for each):
    `vba/modules/IDGenerator.bas`, `LeadConversion.bas`,
    `PipelineHistory.bas`, `AvailabilityCheck.bas`, `PaymentReminder.bas`,
-   `RefreshAllPivots.bas`.
+   `RefreshAllPivots.bas`, `ItemCatalog.bas`.
    In the VBA editor: right-click **VBAProject (AnvayaFilmsCRM.xlsx)** →
-   **Import File...** → pick the `.bas` file. Repeat for all six.
+   **Import File...** → pick the `.bas` file. Repeat for all seven.
 4. **Paste code into `ThisWorkbook`** (do NOT import this one — it must
    go into the workbook's existing built-in module, not a new
    component): in the Project Explorer (left pane), double-click
@@ -56,6 +56,7 @@ pywin32.
    |---|---|
    | `vba/classes/02_CRM_Leads.cls` | 02_CRM_Leads |
    | `vba/classes/03_Quotation_Manager.cls` | 03_Quotation_Manager |
+   | `vba/classes/03a_Quotation_LineItems.cls` | 03a_Quotation_LineItems |
    | `vba/classes/04_Client_Master.cls` | 04_Client_Master |
    | `vba/classes/05_Bookings.cls` | 05_Bookings |
    | `vba/classes/07_Team_Allocation.cls` | 07_Team_Allocation |

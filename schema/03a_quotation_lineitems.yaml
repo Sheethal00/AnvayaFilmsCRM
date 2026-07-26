@@ -11,13 +11,19 @@ columns:
     foreign_key: {sheet: "03_Quotation_Manager", column: QuoteID}
 
   - name: ItemDescription
-    type: text
+    type: dropdown
+    list_ref: ItemCatalog
+    notes: >
+      Values come from 19_Settings.item_catalog. Picking one auto-suggests
+      UnitPrice from the catalog (vba/modules/ItemCatalog.bas), but only
+      when UnitPrice is still blank — never overwrites a custom price.
 
   - name: Qty
     type: num
 
   - name: UnitPrice
     type: currency
+    notes: "Auto-suggested once from the catalog price, then freely editable — not a locked formula (see ItemDescription notes)."
 
   - name: LineTotal
     type: formula

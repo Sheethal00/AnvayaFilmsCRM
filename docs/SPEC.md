@@ -130,10 +130,15 @@ Highlight Film + Drone as separate priced lines):
 | Column | Type |
 |---|---|
 | QuoteID (FK) | Text |
-| ItemDescription | Text |
+| ItemDescription | Dropdown(Item Catalog list, §7) |
 | Qty | Num |
-| UnitPrice | Currency |
+| UnitPrice | Currency — auto-suggested from the catalog when ItemDescription is picked (macro), editable afterward per quote |
 | LineTotal | Formula |
+
+**Automation:** picking an `ItemDescription` auto-fills `UnitPrice` from
+`19_Settings`'s item catalog *only if `UnitPrice` is still blank* — it
+never overwrites a manually entered/negotiated price on an existing
+line (§6).
 
 ---
 
@@ -436,6 +441,7 @@ Every "automatic" bullet from the original spec, now with a defined trigger:
 | Payment Reminder | Daily, on file open | VBA checks `12_Payments` for due dates within N days, flags on Dashboard |
 | Pending Balance | Recalc | Formula (`05_Bookings.BalanceAmount`) |
 | GST Calculation | On Quote save | Formula from Settings.GSTRate |
+| Line Item Price Suggestion | On ItemDescription pick, if UnitPrice blank | VBA `ItemCatalog.LookupDefaultPrice()` (`03a_Quotation_LineItems`) |
 | Profit Calculation | On demand (Refresh button) | Pivot over 12/14, filtered by BookingID |
 | Dashboard Refresh | Manual button + Workbook_Open | VBA `RefreshAllPivots` |
 | Conditional Formatting / Status Colors | Native Excel CF rules | No macro needed |
@@ -455,6 +461,15 @@ Stored once in `19_Settings`, referenced everywhere via named ranges:
   Software, Music Licensing, Cloud Storage, Internet, Electricity, Office Rent, Misc
 - **Lead Sources**: Instagram, Facebook, Google, Website, Referral, Wedding Planner,
   JustDial, WeddingWire, WhatsApp, Walk-in
+- **Item Catalog** (name + default price, `03a_Quotation_LineItems.ItemDescription`):
+  Full Day Photography, Half Day Photography, Full Day Videography,
+  Cinematic Highlight Film, Traditional Video, Drone Coverage, Live
+  Streaming, Pre-Wedding Shoot, Engagement Coverage, Album (20/30/40
+  pages), Second Photographer, Second Videographer, Extra Hour Coverage,
+  Teaser Video, Instagram Reel Edit. Unlike the other lists, this one
+  carries a second value (default price) per item, not just a name —
+  stored as its own `item_catalog` table in `19_Settings` rather than
+  under the flat `lists:` block.
 
 ---
 
