@@ -242,11 +242,18 @@ feature from the original spec made concrete.
 | ChecklistPhase | Dropdown(Pre-Shoot, Wedding Day, Post-Shoot) | |
 | ItemName | Text | e.g. "Batteries Charged" |
 | Checked | Checkbox (bool) | |
-| CheckedBy | Lookup(19_Settings.TeamList) | |
+| CheckedBy | Lookup(19_Settings.TeamList) | Must be crew allocated to this booking (07_Team_Allocation) — macro-enforced |
 | CheckedAt | Formula (timestamp on check) | |
+| Approved | Checkbox (bool) | Cannot be TRUE until Checked is TRUE — macro-enforced |
+| ApprovedBy | Text | Auto-filled from `Environ("Username")` — not a real permission check, see §6 and [decisions/0004](decisions/0004-checklist-approval-workflow.md) |
+| ApprovedAt | Formula (timestamp on approval) | |
 
 Modeled as rows, not fixed columns, so checklist items can be added per-phase
 without changing the schema — original spec listed items as static bullets.
+
+**Automation:** two-stage check-then-approve workflow, decided with the
+business owner — see
+[decisions/0004-checklist-approval-workflow.md](decisions/0004-checklist-approval-workflow.md).
 
 ---
 
@@ -442,6 +449,8 @@ Every "automatic" bullet from the original spec, now with a defined trigger:
 | Pending Balance | Recalc | Formula (`05_Bookings.BalanceAmount`) |
 | GST Calculation | On Quote save | Formula from Settings.GSTRate |
 | Line Item Price Suggestion | On ItemDescription pick, if UnitPrice blank | VBA `ItemCatalog.LookupDefaultPrice()` (`03a_Quotation_LineItems`) |
+| Checklist Crew Restriction | On CheckedBy entry | VBA `ChecklistWorkflow.IsAllocatedToBooking()` reverts if not on the booking's crew (`09_Shoot_Checklist`) |
+| Checklist Approval Gate | On Approved entry | VBA reverts unless Checked is TRUE; auto-records `ApprovedBy`/`ApprovedAt` (`09_Shoot_Checklist`, decision 0004) |
 | Profit Calculation | On demand (Refresh button) | Pivot over 12/14, filtered by BookingID |
 | Dashboard Refresh | Manual button + Workbook_Open | VBA `RefreshAllPivots` |
 | Conditional Formatting / Status Colors | Native Excel CF rules | No macro needed |

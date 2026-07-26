@@ -1,7 +1,7 @@
-BookingID,ChecklistPhase,ItemName,Checked,CheckedBy,CheckedAt
-BK-0001,Pre-Shoot,Batteries Charged,TRUE,Priya Sharma,2026-07-20 14:30:00
-BK-0001,Pre-Shoot,Memory Cards Formatted,TRUE,Priya Sharma,2026-07-20 14:32:00
-BK-0001,Wedding Day,Drone Flight Permission Confirmed,FALSE,,
-BK-0001,Post-Shoot,Footage Backed Up (2 copies),FALSE,,
-BK-0002,Wedding Day,All Equipment On-Site Confirmed,TRUE,Priya Sharma,2026-02-14 08:00:00
-BK-0002,Post-Shoot,Footage Backed Up (2 copies),TRUE,Kavya Reddy,2026-02-16 10:00:00
+BookingID,ChecklistPhase,ItemName,Checked,CheckedBy,CheckedAt,Approved,ApprovedBy,ApprovedAt
+BK-0001,Pre-Shoot,Batteries Charged,TRUE,Priya Sharma,2026-07-20 14:30:00,TRUE,sheethal,2026-07-20 18:00:00
+BK-0001,Pre-Shoot,Memory Cards Formatted,TRUE,Priya Sharma,2026-07-20 14:32:00,FALSE,,
+BK-0001,Wedding Day,Drone Flight Permission Confirmed,FALSE,,,FALSE,,
+BK-0001,Post-Shoot,Footage Backed Up (2 copies),FALSE,,,FALSE,,
+BK-0002,Wedding Day,All Equipment On-Site Confirmed,TRUE,Priya Sharma,2026-02-14 08:00:00,TRUE,sheethal,2026-02-14 20:00:00
+BK-0002,Post-Shoot,Footage Backed Up (2 copies),TRUE,Kavya Reddy,2026-02-16 10:00:00,TRUE,sheethal,2026-02-16 15:00:00

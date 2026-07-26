@@ -23,7 +23,30 @@ columns:
   - name: CheckedBy
     type: lookup
     source: {sheet: "19_Settings", table: team_list, column: Name}
+    notes: >
+      Must be a team member actually allocated to this BookingID in
+      07_Team_Allocation — a macro clears this cell (like the
+      double-booking guard) if it isn't. Not a data-validation-enforced
+      restriction, since the allowed set depends on which row/booking
+      this is; the dropdown itself still lists everyone.
 
   - name: CheckedAt
     type: formula
     formula: "timestamp written by macro when Checked flips to TRUE"
+
+  - name: Approved
+    type: bool
+    notes: "Cannot be set TRUE until Checked is TRUE — macro reverts it otherwise."
+
+  - name: ApprovedBy
+    type: text
+    notes: >
+      Auto-filled by macro from Environ("Username") when Approved flips
+      to TRUE — not a dropdown/lookup, and not real access control (same
+      caveat as UserRolePermissions, CLAUDE.md): it records who was
+      logged into Windows at the time, it doesn't restrict who is
+      allowed to tick the box.
+
+  - name: ApprovedAt
+    type: formula
+    formula: "timestamp written by macro when Approved flips to TRUE"

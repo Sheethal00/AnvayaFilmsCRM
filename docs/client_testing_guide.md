@@ -86,6 +86,9 @@ This build has no VBA (macros), so none of the following works yet:
 - Picking an `ItemDescription` on `03a_Quotation_LineItems` does **not**
   auto-suggest `UnitPrice` yet — the dropdown itself works (it's a
   formula-free feature), but the price fill-in is macro-driven
+- On `09_Shoot_Checklist`, `CheckedBy` isn't restricted to that
+  booking's crew yet, and ticking `Approved` doesn't record who did it
+  or timestamp it — both macro-driven
 
 These all exist as written VBA code already (`vba/modules/`,
 `vba/classes/`) — they just aren't embedded in this particular file. See

@@ -100,10 +100,21 @@ Advance is in hand — the lead is now a real, dated commitment.
 
 ## 8. Pre/during/post-shoot checklist — `09_Shoot_Checklist`
 
+Two-stage: the crew member checks an item off, someone else approves it
+([`docs/decisions/0004-checklist-approval-workflow.md`](decisions/0004-checklist-approval-workflow.md)).
+
 - **You fill in:** `BookingID, ChecklistPhase, ItemName`, `Checked`
-  (tick it), `CheckedBy`.
+  (tick it), `CheckedBy`, `Approved` (tick it once checked).
 - **Computed automatically:** `CheckedAt` — stamped the instant `Checked`
-  flips true `[macro]`.
+  flips true `[macro]`; `ApprovedBy`/`ApprovedAt` — auto-recorded the
+  instant `Approved` flips true `[macro]`.
+- **Guard, not a fill:** `CheckedBy` must be crew actually allocated to
+  that booking (`07_Team_Allocation`) — a macro clears it otherwise.
+  `Approved` can't be ticked until `Checked` is true — a macro reverts
+  it with a message instead.
+- **Not real access control:** `ApprovedBy` records whoever's logged
+  into Windows at the time, same as everywhere else in this workbook —
+  it doesn't restrict who's *allowed* to tick `Approved`.
 
 ## 9. Edit & move through post-production — `10_Production_Pipeline` + `10a_Pipeline_History`
 
